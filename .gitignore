@@ -1,0 +1,24 @@
+# Secrets y entorno
+.env
+.env.local
+*.env
+
+# Base de datos SQLite (incluye archivos WAL)
+*.db
+*.db-wal
+*.db-shm
+prode.db*
+
+# Python
+backend/venv/
+__pycache__/
+*.pyc
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+backend/static/
+
+# Logs y temporales
+*.log
+.DS_Store

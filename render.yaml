@@ -1,0 +1,27 @@
+# Blueprint de Render para Prode Kalunga.
+# Un solo servicio web (Docker) que sirve el frontend + la API.
+# La base de datos es Turso (externa, gratis) — no usa disco de Render.
+#
+# Las variables marcadas sync:false se cargan a mano en el dashboard de Render
+# (Settings → Environment), no se commitean.
+
+services:
+  - type: web
+    name: prode-kalunga
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true        # Render genera uno seguro automáticamente
+      - key: TURSO_DATABASE_URL
+        sync: false                # pegar el de Turso
+      - key: TURSO_AUTH_TOKEN
+        sync: false                # pegar el de Turso
+      - key: FOOTBALL_DATA_API_KEY
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: CRON_SECRET
+        sync: false
