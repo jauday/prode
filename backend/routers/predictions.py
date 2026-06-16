@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
@@ -5,6 +6,7 @@ from auth import get_current_user
 from database import db
 
 router = APIRouter(prefix="/predictions", tags=["predictions"])
+log = logging.getLogger("predictions")
 
 
 class PredictionIn(BaseModel):
@@ -37,6 +39,8 @@ def upsert_prediction(payload: PredictionIn, current_user=Depends(get_current_us
                 updated_at = datetime('now')
         """, (current_user["id"], payload.match_id, payload.home_score, payload.away_score))
 
+    log.info("prediction saved: user=%s match=%d score=%d-%d",
+             current_user["username"], payload.match_id, payload.home_score, payload.away_score)
     return {"ok": True}
 
 

@@ -2,7 +2,14 @@ import os
 import logging
 from contextlib import asynccontextmanager
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s [%(name)s] %(message)s")
+# Force-configure root logger before uvicorn can claim it.
+# basicConfig is a no-op if handlers already exist, so we set up explicitly.
+_root = logging.getLogger()
+if not _root.handlers:
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s [%(name)s] %(message)s"))
+    _root.addHandler(_handler)
+_root.setLevel(logging.INFO)
 
 
 class _HealthCheckFilter(logging.Filter):
