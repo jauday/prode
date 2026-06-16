@@ -49,6 +49,17 @@ def health():
     return {"status": "ok", "app": "Prode Kalunga"}
 
 
+@app.get("/api/public/settings")
+def public_settings():
+    """Settings públicos que el frontend necesita sin estar logueado."""
+    from database import db
+    with db() as conn:
+        row = conn.execute("SELECT value FROM settings WHERE key='signup_enabled'").fetchone()
+    # Default: habilitado si no hay setting guardado
+    signup_enabled = (row["value"] == "true") if row else True
+    return {"signup_enabled": signup_enabled}
+
+
 @app.post("/api/cron/sync")
 async def cron_sync(key: str = Query(default="")):
     """

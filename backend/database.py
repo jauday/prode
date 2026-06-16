@@ -119,6 +119,10 @@ SCHEMA = [
         updated_at TEXT DEFAULT (datetime('now')),
         UNIQUE(user_id, match_id)
     )""",
+    """CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+    )""",
 ]
 
 MIGRATIONS = [

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminUsers from "./AdminUsers";
 import AdminMatches from "./AdminMatches";
 import { api } from "../../api";
@@ -73,6 +73,25 @@ function ResetModal({ onClose }: { onClose: () => void }) {
 export default function AdminPanel() {
   const [tab, setTab] = useState<AdminTab>("matches");
   const [showReset, setShowReset] = useState(false);
+  const [signupEnabled, setSignupEnabled] = useState(true);
+  const [toggling, setToggling] = useState(false);
+
+  useEffect(() => {
+    api.publicSettings().then(s => setSignupEnabled(s.signup_enabled)).catch(() => {});
+  }, []);
+
+  const toggleSignup = async () => {
+    setToggling(true);
+    const next = !signupEnabled;
+    try {
+      await api.admin.setSetting("signup_enabled", next ? "true" : "false");
+      setSignupEnabled(next);
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setToggling(false);
+    }
+  };
 
   const tabBtn = (t: AdminTab, label: string) => (
     <button onClick={() => setTab(t)} style={{
@@ -114,12 +133,23 @@ export default function AdminPanel() {
           {tabBtn("matches", "⚽ Partidos")}
           {tabBtn("users", "👥 Jugadores")}
         </div>
-        <button onClick={() => setShowReset(true)} style={{
-          padding: "0.45rem 0.9rem", borderRadius: 8, fontWeight: 600, fontSize: "0.82rem", cursor: "pointer",
-          background: "transparent", border: "1px solid var(--red)", color: "var(--red)",
-        }}>
-          ⚠️ Reiniciar torneo
-        </button>
+        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+          {/* Toggle registro */}
+          <button onClick={toggleSignup} disabled={toggling} style={{
+            padding: "0.45rem 0.9rem", borderRadius: 8, fontWeight: 600, fontSize: "0.82rem", cursor: "pointer",
+            background: "transparent",
+            border: `1px solid ${signupEnabled ? "var(--green)" : "var(--muted)"}`,
+            color: signupEnabled ? "var(--green)" : "var(--muted)",
+          }}>
+            {signupEnabled ? "🔓 Registro abierto" : "🔒 Registro cerrado"}
+          </button>
+          <button onClick={() => setShowReset(true)} style={{
+            padding: "0.45rem 0.9rem", borderRadius: 8, fontWeight: 600, fontSize: "0.82rem", cursor: "pointer",
+            background: "transparent", border: "1px solid var(--red)", color: "var(--red)",
+          }}>
+            ⚠️ Reiniciar torneo
+          </button>
+        </div>
       </div>
 
       {tab === "matches" ? <AdminMatches /> : <AdminUsers />}

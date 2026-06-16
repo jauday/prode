@@ -104,7 +104,15 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ confirm: "REINICIAR" }),
       }),
+
+    // settings
+    getSettings: () => request<Record<string, string>>("/admin/settings"),
+    setSetting: (key: string, value: string) =>
+      request(`/admin/settings/${key}`, { method: "PATCH", body: JSON.stringify({ value }) }),
   },
+
+  publicSettings: () =>
+    request<{ signup_enabled: boolean }>("/public/settings"),
 };
 
 export interface Match {

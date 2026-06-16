@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { api } from "../api";
 
 type Step = "choice" | "login" | "name" | "password" | "setup";
@@ -10,6 +10,17 @@ interface Props {
 
 export default function Login({ onLogin, onSetup }: Props) {
   const [step, setStep] = useState<Step>("choice");
+  const [signupEnabled, setSignupEnabled] = useState(true);
+
+  useEffect(() => {
+    api.publicSettings()
+      .then(s => {
+        setSignupEnabled(s.signup_enabled);
+        // Si el registro está cerrado, ir directo al login
+        if (!s.signup_enabled) setStep("login");
+      })
+      .catch(() => {}); // si falla, default habilitado
+  }, []);
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -115,12 +126,14 @@ export default function Login({ onLogin, onSetup }: Props) {
             >
               Iniciar sesión
             </button>
-            <button
-              className="btn-secondary"
-              onClick={() => { setError(""); setStep("name"); }}
-            >
-              Primera vez — crear cuenta
-            </button>
+            {signupEnabled && (
+              <button
+                className="btn-secondary"
+                onClick={() => { setError(""); setStep("name"); }}
+              >
+                Primera vez — crear cuenta
+              </button>
+            )}
           </div>
         )}
 

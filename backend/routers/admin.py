@@ -181,6 +181,32 @@ def manual_recalculate(admin=Depends(require_admin)):
     return {"ok": True, "message": "Puntos recalculados"}
 
 
+# ── Settings ──────────────────────────────────────────────────────────────────
+
+@router.get("/settings")
+def get_settings(admin=Depends(require_admin)):
+    with db() as conn:
+        rows = conn.execute("SELECT key, value FROM settings").fetchall()
+    return {r["key"]: r["value"] for r in rows}
+
+
+class SettingUpdate(BaseModel):
+    value: str
+
+
+@router.patch("/settings/{key}")
+def update_setting(key: str, payload: SettingUpdate, admin=Depends(require_admin)):
+    ALLOWED = {"signup_enabled"}
+    if key not in ALLOWED:
+        raise HTTPException(status_code=400, detail="Setting desconocido")
+    with db() as conn:
+        conn.execute(
+            "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+            (key, payload.value),
+        )
+    return {"ok": True}
+
+
 # ── Reiniciar torneo ──────────────────────────────────────────────────────────
 
 class ResetTournament(BaseModel):
