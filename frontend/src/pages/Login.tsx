@@ -134,12 +134,12 @@ export default function Login({ onLogin, onSetup }: Props) {
               <input
                 value={username}
                 onChange={e => setUsername(e.target.value.toLowerCase().trim())}
-                placeholder="Ej: jauday"
+                placeholder="Ej: mgarcia"
                 autoFocus
                 required
               />
               <p style={{ fontSize: "0.78rem", color: "var(--muted)", marginTop: "0.35rem" }}>
-                Tu usuario es la inicial de tu nombre + tu apellido (ej: Joaquin Auday → <strong>jauday</strong>)
+                Tu usuario es la inicial de tu nombre + tu apellido (ej: María García → <strong>mgarcia</strong>)
               </p>
             </div>
             <div>
@@ -177,7 +177,7 @@ export default function Login({ onLogin, onSetup }: Props) {
               <input
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                placeholder="Ej: Joaquin Auday"
+                placeholder="Ej: María García"
                 autoFocus
                 required
               />
