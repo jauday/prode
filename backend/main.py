@@ -51,13 +51,11 @@ def health():
 
 @app.get("/api/public/settings")
 def public_settings():
-    """Settings públicos que el frontend necesita sin estar logueado."""
+    """Feature flags públicos que el frontend necesita (sin estar logueado)."""
     from database import db
+    from feature_flags import resolve_flags
     with db() as conn:
-        row = conn.execute("SELECT value FROM settings WHERE key='signup_enabled'").fetchone()
-    # Default: habilitado si no hay setting guardado
-    signup_enabled = (row["value"] == "true") if row else True
-    return {"signup_enabled": signup_enabled}
+        return resolve_flags(conn)
 
 
 @app.post("/api/cron/sync")

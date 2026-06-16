@@ -112,8 +112,14 @@ export const api = {
   },
 
   publicSettings: () =>
-    request<{ signup_enabled: boolean }>("/public/settings"),
+    request<Settings>("/public/settings"),
 };
+
+export interface Settings {
+  signup_enabled: boolean;
+  countdown_enabled: boolean;
+  streak_enabled: boolean;
+}
 
 export interface Match {
   id: number;
@@ -179,4 +185,5 @@ export interface Standing {
   result_one_exact: number;
   result_only: number;
   one_exact: number;
+  streak: number;
 }

@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { api, Match } from "../api";
 import MatchCard from "../components/MatchCard";
+import CountdownBanner from "../components/CountdownBanner";
+import { useSettings } from "../hooks/useSettings";
 
 type FilterMode = "matchday" | "day";
 
@@ -73,6 +75,7 @@ function PageNav({
 }
 
 export default function Fixtures() {
+  const settings = useSettings();
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -104,6 +107,14 @@ export default function Fixtures() {
   const dayKeys = useMemo(() =>
     [...new Set(matches.map(m => toDateKey(m.kick_off)))].sort(),
     [matches]);
+
+  // Próximo partido que todavía no empezó y que el jugador no pronosticó.
+  const nextUnpredicted = useMemo(() => {
+    const now = Date.now();
+    return matches
+      .filter(m => new Date(m.kick_off).getTime() > now && m.pred_home === null)
+      .sort((a, b) => new Date(a.kick_off).getTime() - new Date(b.kick_off).getTime())[0] ?? null;
+  }, [matches]);
 
   // Default day index to today
   useEffect(() => {
@@ -148,6 +159,11 @@ export default function Fixtures() {
 
   return (
     <div>
+      {/* Cuenta regresiva al próximo partido sin pronosticar */}
+      {settings.countdown_enabled && nextUnpredicted && (
+        <CountdownBanner match={nextUnpredicted} />
+      )}
+
       {/* Selector de modo */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
         <button style={modeTabStyle(filterMode === "matchday")} onClick={() => setFilterMode("matchday")}>
