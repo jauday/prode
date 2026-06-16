@@ -42,6 +42,7 @@ def parse_match(m: dict) -> dict:
         "external_id": m["id"],
         "stage": m.get("stage", ""),
         "matchday": m.get("matchday"),
+        "group_name": m.get("group"),
         "home_team": home.get("name"),
         "away_team": away.get("name"),
         "home_team_flag": home.get("crest"),

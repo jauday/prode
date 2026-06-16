@@ -139,6 +139,7 @@ export interface Match {
   external_id: number;
   stage: string;
   matchday: number | null;
+  group_name: string | null;
   home_team: string;
   away_team: string;
   home_team_flag: string | null;

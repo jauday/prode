@@ -3,6 +3,16 @@ import logging
 from contextlib import asynccontextmanager
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s [%(name)s] %(message)s")
+
+
+class _HealthCheckFilter(logging.Filter):
+    """Descarta del access log las llamadas al healthcheck (ruido de Render)."""
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        return "/api/health" not in msg
+
+
+logging.getLogger("uvicorn.access").addFilter(_HealthCheckFilter())
 from fastapi import FastAPI, HTTPException, Query
 from dotenv import load_dotenv
 load_dotenv()
