@@ -20,4 +20,5 @@ def get_fixtures(current_user=Depends(get_current_user)):
             ORDER BY m.kick_off ASC
         """, (current_user["id"],)).fetchall()
 
+    log.info("fixture load: %s", current_user["username"])
     return [dict(r) for r in rows]
