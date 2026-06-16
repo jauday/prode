@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { api, Match } from "../api";
 import MatchCard from "../components/MatchCard";
 import CountdownBanner from "../components/CountdownBanner";
+import Podium from "../components/Podium";
 import { useSettings } from "../hooks/useSettings";
 
 type FilterMode = "matchday" | "day";
@@ -74,7 +75,7 @@ function PageNav({
   );
 }
 
-export default function Fixtures() {
+export default function Fixtures({ currentUserId }: { currentUserId: number }) {
   const settings = useSettings();
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
@@ -159,6 +160,9 @@ export default function Fixtures() {
 
   return (
     <div>
+      {/* Podio top 3 + tu posición */}
+      {settings.podium_enabled && <Podium currentUserId={currentUserId} />}
+
       {/* Cuenta regresiva al próximo partido sin pronosticar */}
       {settings.countdown_enabled && nextUnpredicted && (
         <CountdownBanner match={nextUnpredicted} />

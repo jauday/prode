@@ -5,15 +5,16 @@ import Login from "./pages/Login";
 import Fixtures from "./pages/Fixtures";
 import Standings from "./pages/Standings";
 import AdminPanel from "./pages/admin/AdminPanel";
-import ChangePasswordModal from "./components/ChangePasswordModal";
+import ProfileModal from "./components/ProfileModal";
 
 type Tab = "fixtures" | "standings" | "admin";
 
 export default function App() {
-  const { user, loading, login, setup, logout } = useAuth();
+  const { user, loading, login, setup, logout, updateUser } = useAuth();
   const { theme, toggle } = useTheme();
   const [tab, setTab] = useState<Tab>("fixtures");
-  const [showChangePwd, setShowChangePwd] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   if (loading) return <div className="spinner" style={{ marginTop: "40vh" }} />;
   if (!user) return <Login onLogin={login} onSetup={setup} />;
@@ -28,46 +29,33 @@ export default function App() {
       }}>
         <span style={{ fontSize: "1.1rem", fontWeight: 700 }}>🏆 Prode Kalunga</span>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-          {/* Theme toggle */}
+        <div style={{ position: "relative" }}>
           <button
-            onClick={toggle}
-            title={theme === "dark" ? "Modo día" : "Modo noche"}
-            style={{
-              background: "var(--surface2)",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              width: 34,
-              height: 34,
-              fontSize: "1rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              color: "var(--text)",
-            }}
+            onClick={() => setMenuOpen(o => !o)}
+            title="Mi cuenta"
+            style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: "0.85rem", padding: "0.35rem 0.5rem", display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--text)" }}
           >
-            {theme === "dark" ? "☀️" : "🌙"}
+            <span style={{ color: "var(--muted)" }}>{user.display_name}</span>
+            <span style={{ color: "var(--muted)", fontSize: "0.7rem" }}>▾</span>
           </button>
 
-          <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>{user.display_name}</span>
-
-          <button
-            className="btn-ghost"
-            onClick={() => setShowChangePwd(true)}
-            title="Cambiar contraseña"
-            style={{ fontSize: "0.8rem", padding: "0.35rem 0.6rem" }}
-          >
-            🔑
-          </button>
-
-          <button
-            className="btn-ghost"
-            onClick={logout}
-            style={{ fontSize: "0.8rem", padding: "0.35rem 0.75rem" }}
-          >
-            Salir
-          </button>
+          {menuOpen && (
+            <>
+              {/* overlay para cerrar al clickear afuera */}
+              <div onClick={() => setMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
+              <div style={{
+                position: "absolute", right: 0, top: "calc(100% + 6px)", zIndex: 50,
+                background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.25)", minWidth: 190, overflow: "hidden",
+                display: "flex", flexDirection: "column",
+              }}>
+                <MenuItem onClick={() => { setShowProfile(true); setMenuOpen(false); }}>Editar perfil</MenuItem>
+                <MenuItem onClick={toggle}>{theme === "dark" ? "Modo claro" : "Modo noche"}</MenuItem>
+                <div style={{ borderTop: "1px solid var(--border)" }} />
+                <MenuItem onClick={() => { setMenuOpen(false); logout(); }} danger>Cerrar sesión</MenuItem>
+              </div>
+            </>
+          )}
         </div>
       </header>
 
@@ -96,11 +84,35 @@ export default function App() {
         ))}
       </nav>
 
-      {showChangePwd && <ChangePasswordModal onClose={() => setShowChangePwd(false)} />}
+      {showProfile && (
+        <ProfileModal
+          user={user}
+          onClose={() => setShowProfile(false)}
+          onUpdated={updateUser}
+        />
+      )}
 
-      {tab === "fixtures" && <Fixtures />}
+      {tab === "fixtures" && <Fixtures currentUserId={user.id} />}
       {tab === "standings" && <Standings />}
       {tab === "admin" && user.is_admin && <AdminPanel />}
     </div>
+  );
+}
+
+function MenuItem({ children, onClick, danger }: { children: React.ReactNode; onClick: () => void; danger?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: "transparent", border: "none", cursor: "pointer",
+        textAlign: "left", padding: "0.7rem 1rem", fontSize: "0.88rem",
+        color: danger ? "var(--red)" : "var(--text)", fontWeight: 600,
+        display: "flex", alignItems: "center", gap: "0.5rem", width: "100%",
+      }}
+      onMouseEnter={e => (e.currentTarget.style.background = "var(--surface2)")}
+      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+    >
+      {children}
+    </button>
   );
 }

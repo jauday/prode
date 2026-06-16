@@ -40,7 +40,7 @@ export default function CountdownBanner({ match }: { match: Match }) {
       <span style={{ fontSize: "1.4rem" }}>⏰</span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: "0.72rem", color: "#fed7aa", textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 600 }}>
-          Te falta pronosticar
+          Próximo partido sin pronosticar
         </div>
         <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           {homeName} vs {awayName}

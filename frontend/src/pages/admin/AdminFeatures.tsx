@@ -24,6 +24,11 @@ const FEATURES: FeatureMeta[] = [
     label: "Racha 🔥",
     desc: "Agrega una columna en la tabla con cuántos partidos seguidos viene sumando puntos cada jugador.",
   },
+  {
+    key: "podium_enabled",
+    label: "Podio 🏆",
+    desc: "Muestra en el inicio el podio con los 3 primeros y, abajo, la posición y los puntos del jugador.",
+  },
 ];
 
 function Toggle({ on, onClick, disabled }: { on: boolean; onClick: () => void; disabled: boolean }) {

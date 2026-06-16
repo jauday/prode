@@ -5,6 +5,7 @@ const DEFAULTS: Settings = {
   signup_enabled: true,
   countdown_enabled: true,
   streak_enabled: true,
+  podium_enabled: true,
 };
 
 // Cache a nivel módulo: se busca una sola vez y se comparte entre componentes.

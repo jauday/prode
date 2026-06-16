@@ -11,6 +11,7 @@ FEATURE_FLAGS = {
     "signup_enabled": True,      # permitir crear cuenta (lookup por nombre)
     "countdown_enabled": True,   # cuenta regresiva al próximo partido sin pronosticar
     "streak_enabled": True,      # racha de partidos seguidos sumando puntos
+    "podium_enabled": True,      # podio top 3 + tu posición en el inicio
 }
 
 
