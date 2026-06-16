@@ -78,6 +78,15 @@ input:focus { border-color: var(--accent); }
 }
 .btn-primary:hover { background: var(--accent-dark); }
 
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 0.7rem 1.4rem;
+  font-weight: 600;
+}
+.btn-secondary:hover { background: var(--surface3, var(--border)); }
+
 .btn-ghost {
   background: transparent;
   color: var(--muted);
