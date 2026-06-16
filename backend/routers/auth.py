@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
@@ -5,10 +6,12 @@ from auth import verify_password, hash_password, create_token, get_current_user
 from database import db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+log = logging.getLogger("auth")
 
 
 @router.post("/login")
 def login(form: OAuth2PasswordRequestForm = Depends()):
+    log.info("login attempt: %s", form.username)
     with db() as conn:
         row = conn.execute(
             "SELECT id, username, display_name, password_hash, is_admin, password_set FROM users WHERE username = ?",
@@ -16,10 +19,13 @@ def login(form: OAuth2PasswordRequestForm = Depends()):
         ).fetchone()
 
     if not row or not row["password_set"]:
+        log.warning("login failed (user not found or no password): %s", form.username)
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
     if not verify_password(form.password, row["password_hash"]):
+        log.warning("login failed (wrong password): %s", form.username)
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
 
+    log.info("login ok: %s", form.username)
     token = create_token(row["id"], row["username"])
     return {
         "access_token": token,
@@ -40,6 +46,7 @@ class LookupRequest(BaseModel):
 @router.post("/lookup")
 def lookup(body: LookupRequest):
     name = body.full_name.strip()
+    log.info("lookup: '%s'", name)
     parts = name.split()
     if len(parts) < 2:
         raise HTTPException(status_code=400, detail="Ingresá nombre y apellido")
@@ -54,8 +61,10 @@ def lookup(body: LookupRequest):
         ).fetchone()
 
     if not row:
+        log.warning("lookup not found: '%s'", name)
         raise HTTPException(status_code=404, detail="No encontramos ese nombre. Verificá con quien organizó el prode.")
 
+    log.info("lookup ok: '%s' → %s (needs_password=%s)", name, row["username"], not bool(row["password_set"]))
     return {
         "username": row["username"],
         "display_name": row["display_name"],
@@ -70,6 +79,7 @@ class SetupRequest(BaseModel):
 
 @router.post("/setup")
 def setup_password(body: SetupRequest):
+    log.info("setup password: %s", body.username)
     if len(body.password) < 4:
         raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 4 caracteres")
 
@@ -79,14 +89,17 @@ def setup_password(body: SetupRequest):
         ).fetchone()
 
         if not row:
+            log.warning("setup failed (user not found): %s", body.username)
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
         if row["password_set"]:
+            log.warning("setup failed (already has password): %s", body.username)
             raise HTTPException(status_code=403, detail="Este usuario ya tiene contraseña configurada")
 
         conn.execute(
             "UPDATE users SET password_hash = ?, password_set = 1 WHERE username = ?",
             (hash_password(body.password), body.username),
         )
+    log.info("setup ok: %s", body.username)
 
     # Auto-login después de configurar contraseña
     with db() as conn:
