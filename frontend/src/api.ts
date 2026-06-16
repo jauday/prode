@@ -55,7 +55,10 @@ export const api = {
       body: JSON.stringify({ username, password }),
     }),
 
-  me: () => request<{ id: number; username: string; display_name: string; is_admin: boolean }>("/auth/me"),
+  me: () => request<CurrentUser>("/auth/me"),
+
+  updateProfile: (data: { first_name: string; last_name: string; username: string }) =>
+    request<CurrentUser>("/auth/me", { method: "PATCH", body: JSON.stringify(data) }),
 
   fixtures: () => request<Match[]>("/fixtures/"),
 
@@ -112,8 +115,24 @@ export const api = {
   },
 
   publicSettings: () =>
-    request<{ signup_enabled: boolean }>("/public/settings"),
+    request<Settings>("/public/settings"),
 };
+
+export interface CurrentUser {
+  id: number;
+  username: string;
+  display_name: string;
+  is_admin: boolean;
+  first_name: string;
+  last_name: string;
+}
+
+export interface Settings {
+  signup_enabled: boolean;
+  countdown_enabled: boolean;
+  streak_enabled: boolean;
+  podium_enabled: boolean;
+}
 
 export interface Match {
   id: number;
@@ -179,4 +198,5 @@ export interface Standing {
   result_one_exact: number;
   result_only: number;
   one_exact: number;
+  streak: number;
 }

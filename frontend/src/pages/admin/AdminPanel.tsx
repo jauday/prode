@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AdminUsers from "./AdminUsers";
 import AdminMatches from "./AdminMatches";
+import AdminFeatures from "./AdminFeatures";
 import { api } from "../../api";
 
-type AdminTab = "matches" | "users";
+type AdminTab = "matches" | "users" | "features";
 
 function ResetModal({ onClose }: { onClose: () => void }) {
   const [confirmText, setConfirmText] = useState("");
@@ -73,25 +74,6 @@ function ResetModal({ onClose }: { onClose: () => void }) {
 export default function AdminPanel() {
   const [tab, setTab] = useState<AdminTab>("matches");
   const [showReset, setShowReset] = useState(false);
-  const [signupEnabled, setSignupEnabled] = useState(true);
-  const [toggling, setToggling] = useState(false);
-
-  useEffect(() => {
-    api.publicSettings().then(s => setSignupEnabled(s.signup_enabled)).catch(() => {});
-  }, []);
-
-  const toggleSignup = async () => {
-    setToggling(true);
-    const next = !signupEnabled;
-    try {
-      await api.admin.setSetting("signup_enabled", next ? "true" : "false");
-      setSignupEnabled(next);
-    } catch (e: any) {
-      alert(e.message);
-    } finally {
-      setToggling(false);
-    }
-  };
 
   const tabBtn = (t: AdminTab, label: string) => (
     <button onClick={() => setTab(t)} style={{
@@ -129,30 +111,22 @@ export default function AdminPanel() {
 
       {/* Tabs */}
       <div style={{ display: "flex", gap: "0.4rem", marginBottom: "1.25rem", justifyContent: "space-between", flexWrap: "wrap" }}>
-        <div style={{ display: "flex", gap: "0.4rem" }}>
+        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
           {tabBtn("matches", "⚽ Partidos")}
           {tabBtn("users", "👥 Jugadores")}
+          {tabBtn("features", "✨ Funciones")}
         </div>
-        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
-          {/* Toggle registro */}
-          <button onClick={toggleSignup} disabled={toggling} style={{
-            padding: "0.45rem 0.9rem", borderRadius: 8, fontWeight: 600, fontSize: "0.82rem", cursor: "pointer",
-            background: "transparent",
-            border: `1px solid ${signupEnabled ? "var(--green)" : "var(--muted)"}`,
-            color: signupEnabled ? "var(--green)" : "var(--muted)",
-          }}>
-            {signupEnabled ? "🔓 Registro abierto" : "🔒 Registro cerrado"}
-          </button>
-          <button onClick={() => setShowReset(true)} style={{
-            padding: "0.45rem 0.9rem", borderRadius: 8, fontWeight: 600, fontSize: "0.82rem", cursor: "pointer",
-            background: "transparent", border: "1px solid var(--red)", color: "var(--red)",
-          }}>
-            ⚠️ Reiniciar torneo
-          </button>
-        </div>
+        <button onClick={() => setShowReset(true)} style={{
+          padding: "0.45rem 0.9rem", borderRadius: 8, fontWeight: 600, fontSize: "0.82rem", cursor: "pointer",
+          background: "transparent", border: "1px solid var(--red)", color: "var(--red)",
+        }}>
+          ⚠️ Reiniciar torneo
+        </button>
       </div>
 
-      {tab === "matches" ? <AdminMatches /> : <AdminUsers />}
+      {tab === "matches" && <AdminMatches />}
+      {tab === "users" && <AdminUsers />}
+      {tab === "features" && <AdminFeatures />}
 
       {showReset && <ResetModal onClose={() => setShowReset(false)} />}
     </div>

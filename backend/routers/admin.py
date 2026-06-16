@@ -185,9 +185,9 @@ def manual_recalculate(admin=Depends(require_admin)):
 
 @router.get("/settings")
 def get_settings(admin=Depends(require_admin)):
+    from feature_flags import resolve_flags
     with db() as conn:
-        rows = conn.execute("SELECT key, value FROM settings").fetchall()
-    return {r["key"]: r["value"] for r in rows}
+        return resolve_flags(conn)
 
 
 class SettingUpdate(BaseModel):
@@ -196,8 +196,8 @@ class SettingUpdate(BaseModel):
 
 @router.patch("/settings/{key}")
 def update_setting(key: str, payload: SettingUpdate, admin=Depends(require_admin)):
-    ALLOWED = {"signup_enabled"}
-    if key not in ALLOWED:
+    from feature_flags import FEATURE_FLAGS
+    if key not in FEATURE_FLAGS:
         raise HTTPException(status_code=400, detail="Setting desconocido")
     with db() as conn:
         conn.execute(

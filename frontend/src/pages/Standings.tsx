@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { api, Standing } from "../api";
+import { useSettings } from "../hooks/useSettings";
 
 export default function Standings() {
+  const settings = useSettings();
   const [rows, setRows] = useState<Standing[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +47,7 @@ export default function Standings() {
               <th style={th(false)}>#</th>
               <th style={th(false)}>Jugador</th>
               <th style={th()}>Puntos</th>
+              {settings.streak_enabled && <th style={th()}>🔥 Racha</th>}
               <th style={th()}>🎯 Exactas</th>
               <th style={th()}>Predicciones</th>
             </tr>
@@ -59,6 +62,11 @@ export default function Standings() {
                 <td style={{ ...td(), fontWeight: 800, fontSize: "1.1rem", color: "var(--gold)" }}>
                   {r.total_points}
                 </td>
+                {settings.streak_enabled && (
+                  <td style={{ ...td(), fontWeight: 700 }}>
+                    {r.streak >= 2 ? `🔥 ${r.streak}` : r.streak === 1 ? "1" : "—"}
+                  </td>
+                )}
                 <td style={{ ...td(), color: "var(--gold)" }}>
                   {r.exact_both || "—"}
                 </td>
