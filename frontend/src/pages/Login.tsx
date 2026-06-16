@@ -11,6 +11,7 @@ interface Props {
 export default function Login({ onLogin, onSetup }: Props) {
   const [step, setStep] = useState<Step>("choice");
   const [signupEnabled, setSignupEnabled] = useState(true);
+  const savedUsername = localStorage.getItem("last_username") ?? "";
 
   useEffect(() => {
     api.publicSettings()
@@ -22,7 +23,7 @@ export default function Login({ onLogin, onSetup }: Props) {
       .catch(() => {}); // si falla, default habilitado
   }, []);
   const [fullName, setFullName] = useState("");
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState(savedUsername);
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -36,6 +37,7 @@ export default function Login({ onLogin, onSetup }: Props) {
     setLoading(true);
     try {
       await onLogin(username, password);
+      localStorage.setItem("last_username", username);
     } catch (err: any) {
       setError(err.message);
     } finally {

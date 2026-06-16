@@ -152,10 +152,7 @@ export default function MatchCard({ match, onSaved }: Props) {
     }}>
       {/* Header: fecha + badges */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.85rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-          <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>{dateStr} · {timeStr}</span>
-          {locked && <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>🔒</span>}
-        </div>
+        <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>{dateStr} · {timeStr}</span>
         <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
           {statusBadge(match.status, match.kick_off)}
           {pointsBadge(match.points)}
