@@ -150,3 +150,46 @@ def change_password(body: ChangePasswordRequest, current_user=Depends(get_curren
 @router.get("/me")
 def me(current_user=Depends(get_current_user)):
     return current_user
+
+
+class ProfileUpdate(BaseModel):
+    first_name: str
+    last_name: str
+    username: str
+
+
+@router.patch("/me")
+def update_profile(body: ProfileUpdate, current_user=Depends(get_current_user)):
+    first = body.first_name.strip()
+    last = body.last_name.strip()
+    username = body.username.strip().lower()
+
+    if not first or not last:
+        raise HTTPException(status_code=400, detail="Nombre y apellido son obligatorios")
+    if len(username) < 3:
+        raise HTTPException(status_code=400, detail="El usuario debe tener al menos 3 caracteres")
+    if " " in username:
+        raise HTTPException(status_code=400, detail="El usuario no puede tener espacios")
+
+    display = f"{first} {last}"
+    with db() as conn:
+        clash = conn.execute(
+            "SELECT id FROM users WHERE username = ? AND id <> ?", (username, current_user["id"])
+        ).fetchone()
+        if clash:
+            raise HTTPException(status_code=409, detail="Ese usuario ya está en uso")
+
+        conn.execute(
+            "UPDATE users SET first_name = ?, last_name = ?, username = ?, display_name = ? WHERE id = ?",
+            (first, last, username, display, current_user["id"]),
+        )
+
+    log.info("profile updated: %s -> %s (%s)", current_user["username"], username, display)
+    return {
+        "id": current_user["id"],
+        "username": username,
+        "display_name": display,
+        "is_admin": current_user["is_admin"],
+        "first_name": first,
+        "last_name": last,
+    }

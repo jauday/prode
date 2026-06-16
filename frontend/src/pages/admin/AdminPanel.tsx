@@ -1,9 +1,10 @@
 import { useState } from "react";
 import AdminUsers from "./AdminUsers";
 import AdminMatches from "./AdminMatches";
+import AdminFeatures from "./AdminFeatures";
 import { api } from "../../api";
 
-type AdminTab = "matches" | "users";
+type AdminTab = "matches" | "users" | "features";
 
 function ResetModal({ onClose }: { onClose: () => void }) {
   const [confirmText, setConfirmText] = useState("");
@@ -110,9 +111,10 @@ export default function AdminPanel() {
 
       {/* Tabs */}
       <div style={{ display: "flex", gap: "0.4rem", marginBottom: "1.25rem", justifyContent: "space-between", flexWrap: "wrap" }}>
-        <div style={{ display: "flex", gap: "0.4rem" }}>
+        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
           {tabBtn("matches", "⚽ Partidos")}
           {tabBtn("users", "👥 Jugadores")}
+          {tabBtn("features", "✨ Funciones")}
         </div>
         <button onClick={() => setShowReset(true)} style={{
           padding: "0.45rem 0.9rem", borderRadius: 8, fontWeight: 600, fontSize: "0.82rem", cursor: "pointer",
@@ -122,7 +124,9 @@ export default function AdminPanel() {
         </button>
       </div>
 
-      {tab === "matches" ? <AdminMatches /> : <AdminUsers />}
+      {tab === "matches" && <AdminMatches />}
+      {tab === "users" && <AdminUsers />}
+      {tab === "features" && <AdminFeatures />}
 
       {showReset && <ResetModal onClose={() => setShowReset(false)} />}
     </div>

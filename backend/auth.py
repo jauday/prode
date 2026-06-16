@@ -50,7 +50,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 
     with db() as conn:
         row = conn.execute(
-            "SELECT id, username, display_name, is_admin FROM users WHERE id = ?", (user_id,)
+            "SELECT id, username, display_name, is_admin, first_name, last_name FROM users WHERE id = ?", (user_id,)
         ).fetchone()
 
     if not row:
@@ -61,6 +61,8 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         "username": row["username"],
         "display_name": row["display_name"],
         "is_admin": bool(row["is_admin"]),
+        "first_name": row["first_name"] or "",
+        "last_name": row["last_name"] or "",
     }
 
 

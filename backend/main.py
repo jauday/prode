@@ -8,11 +8,11 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s [%(name)s] %(messa
 class _HealthCheckFilter(logging.Filter):
     """Descarta del access log las llamadas al healthcheck (ruido de Render)."""
     def filter(self, record: logging.LogRecord) -> bool:
-        return "/api/health" not in record.getMessage()
+        msg = record.getMessage()
+        return "/api/health" not in msg
 
 
 logging.getLogger("uvicorn.access").addFilter(_HealthCheckFilter())
-
 from fastapi import FastAPI, HTTPException, Query
 from dotenv import load_dotenv
 load_dotenv()
@@ -57,6 +57,15 @@ app.include_router(admin.router, prefix="/api")
 @app.get("/api/health")
 def health():
     return {"status": "ok", "app": "Prode Kalunga"}
+
+
+@app.get("/api/public/settings")
+def public_settings():
+    """Feature flags públicos que el frontend necesita (sin estar logueado)."""
+    from database import db
+    from feature_flags import resolve_flags
+    with db() as conn:
+        return resolve_flags(conn)
 
 
 @app.post("/api/cron/sync")

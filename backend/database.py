@@ -110,7 +110,8 @@ SCHEMA = [
         kick_off TEXT NOT NULL,
         status TEXT DEFAULT 'SCHEDULED',
         home_score INTEGER,
-        away_score INTEGER
+        away_score INTEGER,
+        group_name TEXT
     )""",
     """CREATE TABLE IF NOT EXISTS predictions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -123,6 +124,10 @@ SCHEMA = [
         updated_at TEXT DEFAULT (datetime('now')),
         UNIQUE(user_id, match_id)
     )""",
+    """CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+    )""",
 ]
 
 MIGRATIONS = [
@@ -130,6 +135,7 @@ MIGRATIONS = [
     "ALTER TABLE users ADD COLUMN first_name TEXT DEFAULT ''",
     "ALTER TABLE users ADD COLUMN last_name TEXT DEFAULT ''",
     "ALTER TABLE users ADD COLUMN password_set INTEGER DEFAULT 1",
+    "ALTER TABLE matches ADD COLUMN group_name TEXT",
 ]
 
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { api } from "../api";
+import { api, CurrentUser } from "../api";
 
-interface User { id: number; username: string; display_name: string; is_admin: boolean }
+type User = CurrentUser;
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -33,5 +33,7 @@ export function useAuth() {
     setUser(null);
   };
 
-  return { user, loading, login, setup, logout };
+  const updateUser = (u: User) => setUser(u);
+
+  return { user, loading, login, setup, logout, updateUser };
 }

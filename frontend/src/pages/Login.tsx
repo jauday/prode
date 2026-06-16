@@ -1,7 +1,7 @@
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { api } from "../api";
 
-type Step = "name" | "password" | "setup";
+type Step = "choice" | "login" | "name" | "password" | "setup";
 
 interface Props {
   onLogin: (username: string, password: string) => Promise<void>;
@@ -9,15 +9,43 @@ interface Props {
 }
 
 export default function Login({ onLogin, onSetup }: Props) {
-  const [step, setStep] = useState<Step>("name");
+  const [step, setStep] = useState<Step>("choice");
+  const [signupEnabled, setSignupEnabled] = useState(true);
+  const savedUsername = localStorage.getItem("last_username") ?? "";
+
+  useEffect(() => {
+    api.publicSettings()
+      .then(s => {
+        setSignupEnabled(s.signup_enabled);
+        // Si el registro está cerrado, ir directo al login
+        if (!s.signup_enabled) setStep("login");
+      })
+      .catch(() => {}); // si falla, default habilitado
+  }, []);
   const [fullName, setFullName] = useState("");
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState(savedUsername);
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // ── Login directo con usuario + contraseña ──
+  const handleDirectLogin = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await onLogin(username, password);
+      localStorage.setItem("last_username", username);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Lookup por nombre (primera vez) ──
   const handleLookup = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
@@ -34,6 +62,7 @@ export default function Login({ onLogin, onSetup }: Props) {
     }
   };
 
+  // ── Login tras lookup ──
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
@@ -47,6 +76,7 @@ export default function Login({ onLogin, onSetup }: Props) {
     }
   };
 
+  // ── Setup contraseña (primera vez) ──
   const handleSetup = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
@@ -62,7 +92,17 @@ export default function Login({ onLogin, onSetup }: Props) {
     }
   };
 
-  const back = () => {
+  const reset = () => {
+    setStep("choice");
+    setFullName("");
+    setUsername("");
+    setDisplayName("");
+    setPassword("");
+    setConfirm("");
+    setError("");
+  };
+
+  const backToName = () => {
     setStep("name");
     setPassword("");
     setConfirm("");
@@ -79,11 +119,71 @@ export default function Login({ onLogin, onSetup }: Props) {
           <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginTop: "0.5rem" }}>Prode Kalunga</h1>
         </div>
 
-        {/* ── Paso 1: nombre ── */}
+        {/* ── Pantalla inicial: elegir modo ── */}
+        {step === "choice" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <button
+              className="btn-primary"
+              onClick={() => { setError(""); setStep("login"); }}
+            >
+              Iniciar sesión
+            </button>
+            {signupEnabled && (
+              <button
+                className="btn-secondary"
+                onClick={() => { setError(""); setStep("name"); }}
+              >
+                Primera vez — crear cuenta
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* ── Login directo ── */}
+        {step === "login" && (
+          <form onSubmit={handleDirectLogin} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div>
+              <label style={{ fontSize: "0.82rem", color: "var(--muted)", display: "block", marginBottom: "0.4rem" }}>
+                Usuario
+              </label>
+              <input
+                value={username}
+                onChange={e => setUsername(e.target.value.toLowerCase().trim())}
+                placeholder="Ej: mgarcia"
+                autoFocus
+                required
+              />
+              <p style={{ fontSize: "0.78rem", color: "var(--muted)", marginTop: "0.35rem" }}>
+                Tu usuario es la inicial de tu nombre + tu apellido (ej: María García → <strong>mgarcia</strong>)
+              </p>
+            </div>
+            <div>
+              <label style={{ fontSize: "0.82rem", color: "var(--muted)", display: "block", marginBottom: "0.4rem" }}>
+                Contraseña
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••"
+                required
+              />
+            </div>
+            {error && <ErrorBox msg={error} />}
+            <button className="btn-primary" type="submit" disabled={loading}>
+              {loading ? "Ingresando…" : "Ingresar"}
+            </button>
+            <button type="button" onClick={reset} style={linkStyle}>
+              ← Volver
+            </button>
+          </form>
+        )}
+
+        {/* ── Primera vez: buscar por nombre ── */}
         {step === "name" && (
           <form onSubmit={handleLookup} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <p style={{ color: "var(--muted)", fontSize: "0.9rem", textAlign: "center", marginTop: "-1rem" }}>
-              Ingresá tu nombre y apellido para entrar
+              Ingresá tu nombre y apellido para encontrarte
             </p>
             <div>
               <label style={{ fontSize: "0.82rem", color: "var(--muted)", display: "block", marginBottom: "0.4rem" }}>
@@ -92,7 +192,7 @@ export default function Login({ onLogin, onSetup }: Props) {
               <input
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                placeholder="Ej: Joaquin Auday"
+                placeholder="Ej: María García"
                 autoFocus
                 required
               />
@@ -101,13 +201,16 @@ export default function Login({ onLogin, onSetup }: Props) {
             <button className="btn-primary" type="submit" disabled={loading}>
               {loading ? "Buscando…" : "Continuar →"}
             </button>
+            <button type="button" onClick={reset} style={linkStyle}>
+              ← Volver
+            </button>
           </form>
         )}
 
-        {/* ── Paso 2a: ingresar contraseña ── */}
+        {/* ── Ingresar contraseña (tras lookup) ── */}
         {step === "password" && (
           <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <FoundBadge name={displayName} onBack={back} />
+            <FoundBadge name={displayName} onBack={backToName} />
             <div>
               <label style={{ fontSize: "0.82rem", color: "var(--muted)", display: "block", marginBottom: "0.4rem" }}>
                 Contraseña
@@ -128,10 +231,10 @@ export default function Login({ onLogin, onSetup }: Props) {
           </form>
         )}
 
-        {/* ── Paso 2b: crear contraseña (primera vez) ── */}
+        {/* ── Crear contraseña (primera vez) ── */}
         {step === "setup" && (
           <form onSubmit={handleSetup} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <FoundBadge name={displayName} onBack={back} />
+            <FoundBadge name={displayName} onBack={backToName} />
             <p style={{ fontSize: "0.85rem", color: "var(--muted)", textAlign: "center", marginTop: "-0.25rem" }}>
               Primera vez que entrás — elegí tu contraseña
             </p>
@@ -171,6 +274,16 @@ export default function Login({ onLogin, onSetup }: Props) {
     </div>
   );
 }
+
+const linkStyle: React.CSSProperties = {
+  background: "transparent",
+  border: "none",
+  color: "var(--muted)",
+  fontSize: "0.85rem",
+  cursor: "pointer",
+  textAlign: "center",
+  padding: "0.25rem",
+};
 
 function FoundBadge({ name, onBack }: { name: string; onBack: () => void }) {
   return (

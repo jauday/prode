@@ -10,7 +10,7 @@ def get_fixtures(current_user=Depends(get_current_user)):
     with db() as conn:
         rows = conn.execute("""
             SELECT
-                m.id, m.external_id, m.stage, m.matchday,
+                m.id, m.external_id, m.stage, m.matchday, m.group_name,
                 m.home_team, m.away_team, m.home_team_flag, m.away_team_flag,
                 m.kick_off, m.status, m.home_score, m.away_score,
                 p.home_score AS pred_home, p.away_score AS pred_away, p.points
