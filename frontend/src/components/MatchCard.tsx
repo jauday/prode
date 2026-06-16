@@ -141,8 +141,15 @@ export default function MatchCard({ match, onSaved }: Props) {
 
   const hasScore = ["FINISHED", "IN_PLAY", "PAUSED"].includes(match.status);
 
+  // Locked pero todavía no empezó (ventana entre kick_off y IN_PLAY)
+  const lockedPending = locked && match.status === "SCHEDULED";
+
   return (
-    <div className="card" style={{ marginBottom: "0.75rem" }}>
+    <div className="card" style={{
+      marginBottom: "0.75rem",
+      opacity: locked ? 0.82 : 1,
+      borderColor: lockedPending && !hasPred ? "var(--red, #ef4444)" : undefined,
+    }}>
       {/* Header: fecha + badges */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.85rem" }}>
         <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>{dateStr} · {timeStr}</span>
@@ -152,24 +159,28 @@ export default function MatchCard({ match, onSaved }: Props) {
         </div>
       </div>
 
-      {/* Fila 1: nombre · bandera · marcador/vs · bandera · nombre */}
+      {/* Grilla: nombre · bandera · [score + predicción] · bandera · nombre */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "1fr 32px minmax(72px, auto) 32px 1fr",
+        gridTemplateColumns: "1fr 32px minmax(80px, auto) 32px 1fr",
         gap: "0.5rem",
         alignItems: "center",
       }}>
+        {/* Nombre local */}
         <span style={{ textAlign: "right", fontWeight: 600, fontSize: "0.92rem", lineHeight: 1.2 }}>
           {homeName}
         </span>
+
+        {/* Bandera local */}
         <div style={{ display: "flex", justifyContent: "center" }}>
           {match.home_team_flag
             ? <img src={match.home_team_flag} alt={homeName} style={{ height: 26, width: 32, objectFit: "contain" }} />
             : <span style={{ fontSize: "1.1rem" }}>🏳</span>}
         </div>
 
-        {/* Centro: marcador o "vs" */}
-        <div style={{ textAlign: "center" }}>
+        {/* Columna central: marcador + predicción apilados y centrados */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}>
+          {/* Marcador oficial o "vs" */}
           {hasScore ? (
             <span style={{ fontSize: "1.4rem", fontWeight: 700, letterSpacing: 2 }}>
               {match.home_score ?? "?"}&nbsp;–&nbsp;{match.away_score ?? "?"}
@@ -177,49 +188,52 @@ export default function MatchCard({ match, onSaved }: Props) {
           ) : (
             <span style={{ color: "var(--muted)", fontWeight: 600, fontSize: "0.95rem" }}>vs</span>
           )}
+
+          {/* Predicción */}
+          {locked ? (
+            hasPred ? (
+              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+                pred: <strong style={{ color: "var(--text)" }}>{match.pred_home}–{match.pred_away}</strong>
+              </span>
+            ) : (
+              <span style={{ fontSize: "0.75rem", color: "var(--red, #ef4444)", fontWeight: 600 }}>
+                sin pronóstico
+              </span>
+            )
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.3rem" }}>
+              <span style={{ fontSize: "0.65rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                tu predicción
+              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                <ScoreInput value={home} onChange={handleHomeChange} />
+                <span style={{ color: "var(--muted)", fontWeight: 700 }}>–</span>
+                <ScoreInput value={away} onChange={handleAwayChange} />
+              </div>
+              <span style={{
+                fontSize: "0.72rem",
+                color: saved ? "var(--green)" : saving ? "var(--muted)" : "transparent",
+                height: "1em",
+                transition: "color 0.2s",
+              }}>
+                {saving ? "guardando…" : "✓ guardado"}
+              </span>
+              {error && <p style={{ color: "var(--red)", fontSize: "0.75rem", margin: 0 }}>{error}</p>}
+            </div>
+          )}
         </div>
 
+        {/* Bandera visitante */}
         <div style={{ display: "flex", justifyContent: "center" }}>
           {match.away_team_flag
             ? <img src={match.away_team_flag} alt={awayName} style={{ height: 26, width: 32, objectFit: "contain" }} />
             : <span style={{ fontSize: "1.1rem" }}>🏳</span>}
         </div>
+
+        {/* Nombre visitante */}
         <span style={{ fontWeight: 600, fontSize: "0.92rem", lineHeight: 1.2 }}>
           {awayName}
         </span>
-      </div>
-
-      {/* Fila 2: predicción centrada debajo */}
-      <div style={{ display: "flex", justifyContent: "center", marginTop: "0.75rem" }}>
-        {locked ? (
-          hasPred ? (
-            <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
-              tu pronóstico: <strong style={{ color: "var(--text)" }}>{match.pred_home}–{match.pred_away}</strong>
-            </span>
-          ) : (
-            <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>sin pronóstico</span>
-          )
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.3rem" }}>
-            <span style={{ fontSize: "0.65rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>
-              tu predicción
-            </span>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-              <ScoreInput value={home} onChange={handleHomeChange} />
-              <span style={{ color: "var(--muted)", fontWeight: 700 }}>–</span>
-              <ScoreInput value={away} onChange={handleAwayChange} />
-            </div>
-            <span style={{
-              fontSize: "0.72rem",
-              color: saved ? "var(--green)" : saving ? "var(--muted)" : "transparent",
-              height: "1em",
-              transition: "color 0.2s",
-            }}>
-              {saving ? "guardando…" : "✓ guardado"}
-            </span>
-            {error && <p style={{ color: "var(--red)", fontSize: "0.75rem", margin: 0 }}>{error}</p>}
-          </div>
-        )}
       </div>
     </div>
   );
