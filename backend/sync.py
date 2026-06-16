@@ -1,6 +1,7 @@
 """
 Background job: syncs fixtures and live scores from football-data.org.
-Runs every 60s during live matches, every 5min otherwise.
+El fetch HTTP es async; las escrituras a Turso son sync y se corren en un
+thread separado para no bloquear el event loop (y así no trabar el health check).
 """
 
 import asyncio
@@ -9,13 +10,8 @@ from football_api import fetch_matches, parse_match
 from scoring import calculate_points
 
 
-async def sync_matches():
-    try:
-        matches = await fetch_matches()
-    except Exception as e:
-        print(f"[sync] Error fetching matches: {e}")
-        return
-
+def _write_matches_to_db(matches):
+    """Escribe los partidos en la DB de forma síncrona. Se llama via asyncio.to_thread."""
     skipped = 0
     for m in matches:
         parsed = parse_match(m)
@@ -51,6 +47,17 @@ async def sync_matches():
 
     recalculate_points()
     print(f"[sync] Synced {len(matches) - skipped} matches ({skipped} sin equipos definidos, omitidos)")
+
+
+async def sync_matches():
+    try:
+        matches = await fetch_matches()
+    except Exception as e:
+        print(f"[sync] Error fetching matches: {e}")
+        return
+
+    # Corre las escrituras sync a Turso en un thread para no bloquear el event loop.
+    await asyncio.to_thread(_write_matches_to_db, matches)
 
 
 def recalculate_points():

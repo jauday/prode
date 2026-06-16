@@ -1,5 +1,4 @@
 import os
-import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Query
 from dotenv import load_dotenv
@@ -15,18 +14,10 @@ from routers import auth, fixtures, predictions, standings, admin
 CRON_SECRET = os.getenv("CRON_SECRET", "")
 
 
-async def periodic_sync():
-    while True:
-        await sync_matches()
-        await asyncio.sleep(60)
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
-    task = asyncio.create_task(periodic_sync())
     yield
-    task.cancel()
 
 
 app = FastAPI(title="Prode Kalunga", lifespan=lifespan)
