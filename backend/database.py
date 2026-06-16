@@ -45,6 +45,10 @@ class _Conn:
         self._raw = raw
 
     def execute(self, sql, params=()):
+        # libSQL (Turso) exige tuple; sqlite3 acepta ambos. Normalizamos siempre
+        # a tuple para que un list no rompa solo en producción.
+        if isinstance(params, list):
+            params = tuple(params)
         cur = self._raw.execute(sql, params)
         return _Result(cur)
 
@@ -106,7 +110,8 @@ SCHEMA = [
         kick_off TEXT NOT NULL,
         status TEXT DEFAULT 'SCHEDULED',
         home_score INTEGER,
-        away_score INTEGER
+        away_score INTEGER,
+        group_name TEXT
     )""",
     """CREATE TABLE IF NOT EXISTS predictions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -130,6 +135,7 @@ MIGRATIONS = [
     "ALTER TABLE users ADD COLUMN first_name TEXT DEFAULT ''",
     "ALTER TABLE users ADD COLUMN last_name TEXT DEFAULT ''",
     "ALTER TABLE users ADD COLUMN password_set INTEGER DEFAULT 1",
+    "ALTER TABLE matches ADD COLUMN group_name TEXT",
 ]
 
 

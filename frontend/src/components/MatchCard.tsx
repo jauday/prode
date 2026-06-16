@@ -142,6 +142,11 @@ export default function MatchCard({ match, onSaved }: Props) {
   const hasPred = match.pred_home !== null;
   const hasScore = ["FINISHED", "IN_PLAY", "PAUSED"].includes(match.status);
 
+  // "GROUP_A" → "Grupo A"
+  const groupLabel = match.group_name
+    ? match.group_name.replace(/^GROUP[_ ]?/i, "Grupo ").replace(/_/g, " ")
+    : "";
+
   // Badge centrado arriba: estado en vivo / puntos / fecha
   const topBadge = (() => {
     if (match.status === "IN_PLAY") return <span className="badge badge-live">{estimatedMinute(match.kick_off)}</span>;
@@ -190,6 +195,7 @@ export default function MatchCard({ match, onSaved }: Props) {
           marginBottom: "0.75rem", paddingBottom: "0.6rem", borderBottom: "1px solid var(--border)",
         }}>
           {STAGE_ES[match.stage] ?? match.stage}
+          {groupLabel ? ` · ${groupLabel}` : ""}
           {match.matchday ? ` · Fecha ${match.matchday}` : ""} · {fullDate}
         </div>
       )}

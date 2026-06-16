@@ -23,9 +23,9 @@ def _write_matches_to_db(matches):
         with db() as conn:
             conn.execute("""
                 INSERT INTO matches
-                    (external_id, stage, matchday, home_team, away_team,
+                    (external_id, stage, matchday, group_name, home_team, away_team,
                      home_team_flag, away_team_flag, kick_off, status, home_score, away_score)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(external_id) DO UPDATE SET
                     status = excluded.status,
                     home_score = excluded.home_score,
@@ -36,9 +36,10 @@ def _write_matches_to_db(matches):
                     away_team_flag = excluded.away_team_flag,
                     kick_off = excluded.kick_off,
                     stage = excluded.stage,
-                    matchday = excluded.matchday
+                    matchday = excluded.matchday,
+                    group_name = excluded.group_name
             """, (
-                parsed["external_id"], parsed["stage"], parsed["matchday"],
+                parsed["external_id"], parsed["stage"], parsed["matchday"], parsed["group_name"],
                 parsed["home_team"], parsed["away_team"],
                 parsed["home_team_flag"], parsed["away_team_flag"],
                 parsed["kick_off"], parsed["status"],

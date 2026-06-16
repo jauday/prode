@@ -80,7 +80,7 @@ export default function Fixtures({ currentUserId }: { currentUserId: number }) {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filterMode, setFilterMode] = useState<FilterMode>("matchday");
+  const [filterMode, setFilterMode] = useState<FilterMode>("day");
   const [mdIndex, setMdIndex] = useState(0);
   const [dayIndex, setDayIndex] = useState(0);
 

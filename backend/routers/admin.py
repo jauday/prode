@@ -156,10 +156,10 @@ def all_predictions(match_id: int | None = None, admin=Depends(require_admin)):
         JOIN users u ON u.id = p.user_id
         JOIN matches m ON m.id = p.match_id
     """
-    params: list = []
+    params: tuple = ()
     if match_id:
         query += " WHERE p.match_id = ?"
-        params.append(match_id)
+        params = (match_id,)
     query += " ORDER BY m.kick_off, u.display_name"
 
     with db() as conn:
