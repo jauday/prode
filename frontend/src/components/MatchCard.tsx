@@ -141,11 +141,21 @@ export default function MatchCard({ match, onSaved }: Props) {
 
   const hasScore = ["FINISHED", "IN_PLAY", "PAUSED"].includes(match.status);
 
+  // Locked pero todavía no empezó (ventana entre kick_off y IN_PLAY)
+  const lockedPending = locked && match.status === "SCHEDULED";
+
   return (
-    <div className="card" style={{ marginBottom: "0.75rem" }}>
+    <div className="card" style={{
+      marginBottom: "0.75rem",
+      opacity: locked ? 0.82 : 1,
+      borderColor: lockedPending && !hasPred ? "var(--red, #ef4444)" : undefined,
+    }}>
       {/* Header: fecha + badges */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.85rem" }}>
-        <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>{dateStr} · {timeStr}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>{dateStr} · {timeStr}</span>
+          {locked && <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>🔒</span>}
+        </div>
         <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
           {statusBadge(match.status, match.kick_off)}
           {pointsBadge(match.points)}
@@ -189,7 +199,9 @@ export default function MatchCard({ match, onSaved }: Props) {
                 pred: <strong style={{ color: "var(--text)" }}>{match.pred_home}–{match.pred_away}</strong>
               </span>
             ) : (
-              <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>sin predicción</span>
+              <span style={{ fontSize: "0.75rem", color: "var(--red, #ef4444)", fontWeight: 600 }}>
+                sin pronóstico
+              </span>
             )
           ) : (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.3rem" }}>
