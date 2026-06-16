@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends
 from auth import get_current_user
 from database import db
+import logging
 
 router = APIRouter(prefix="/fixtures", tags=["fixtures"])
-
+log = logging.getLogger("fixtures")
 
 @router.get("/")
 def get_fixtures(current_user=Depends(get_current_user)):

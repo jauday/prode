@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends
 from auth import get_current_user
 from database import db
+import logging
+
 
 router = APIRouter(prefix="/standings", tags=["standings"])
-
+log = logging.getLogger("standings")
 
 @router.get("/")
 def get_standings(current_user=Depends(get_current_user)):
