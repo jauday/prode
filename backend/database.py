@@ -45,6 +45,10 @@ class _Conn:
         self._raw = raw
 
     def execute(self, sql, params=()):
+        # libSQL (Turso) exige tuple; sqlite3 acepta ambos. Normalizamos siempre
+        # a tuple para que un list no rompa solo en producción.
+        if isinstance(params, list):
+            params = tuple(params)
         cur = self._raw.execute(sql, params)
         return _Result(cur)
 
