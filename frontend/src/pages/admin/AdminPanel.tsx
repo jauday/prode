@@ -5,7 +5,7 @@ import AdminFeatures from "./AdminFeatures";
 import { api } from "../../api";
 
 type AdminTab = "matches" | "users" | "features";
-type ResetType = "predictions" | "points";
+type ResetType = "finished" | "predictions" | "points";
 
 function ResetModal({ type, onClose }: { type: ResetType; onClose: () => void }) {
   const [confirmText, setConfirmText] = useState("");
@@ -13,20 +13,31 @@ function ResetModal({ type, onClose }: { type: ResetType; onClose: () => void })
   const [error, setError] = useState("");
   const [result, setResult] = useState("");
 
-  const isPredictions = type === "predictions";
-
-  const title = isPredictions ? "Reiniciar predicciones" : "Reiniciar tabla";
-  const description = isPredictions
-    ? <>Borra <strong style={{ color: "var(--text)" }}>todas las predicciones</strong> de todos los jugadores. Los usuarios y partidos quedan intactos. <strong style={{ color: "var(--text)" }}>No se puede deshacer.</strong></>
-    : <>Pone a <strong style={{ color: "var(--text)" }}>0 los puntos</strong> de todas las predicciones sin borrarlas. Útil para corregir un error de cálculo. <strong style={{ color: "var(--text)" }}>No se puede deshacer.</strong></>;
-  const actionLabel = isPredictions ? "Borrar predicciones" : "Reiniciar puntos";
+  const config = {
+    finished: {
+      title: "Borrar predicciones de partidos terminados",
+      description: <>Borra las predicciones de partidos que <strong style={{ color: "var(--text)" }}>ya terminaron</strong>. Las predicciones de partidos futuros se conservan. <strong style={{ color: "var(--text)" }}>No se puede deshacer.</strong></>,
+      actionLabel: "Borrar predicciones terminadas",
+      action: () => api.admin.resetFinishedPredictions(),
+    },
+    predictions: {
+      title: "Reiniciar todas las predicciones",
+      description: <>Borra <strong style={{ color: "var(--text)" }}>todas las predicciones</strong> de todos los jugadores. Los usuarios y partidos quedan intactos. <strong style={{ color: "var(--text)" }}>No se puede deshacer.</strong></>,
+      actionLabel: "Borrar todas las predicciones",
+      action: () => api.admin.resetPredictions(),
+    },
+    points: {
+      title: "Reiniciar tabla",
+      description: <>Pone a <strong style={{ color: "var(--text)" }}>0 los puntos</strong> de todas las predicciones sin borrarlas. Útil para corregir un error de cálculo. <strong style={{ color: "var(--text)" }}>No se puede deshacer.</strong></>,
+      actionLabel: "Reiniciar puntos",
+      action: () => api.admin.resetPoints(),
+    },
+  }[type];
 
   const reset = async () => {
     setSaving(true); setError("");
     try {
-      const r = isPredictions
-        ? await api.admin.resetPredictions()
-        : await api.admin.resetPoints();
+      const r = await config.action();
       setResult(r.message);
       setTimeout(onClose, 1800);
     } catch (e: any) {
@@ -40,7 +51,7 @@ function ResetModal({ type, onClose }: { type: ResetType; onClose: () => void })
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: "1rem" }}>
       <div className="card" style={{ width: "100%", maxWidth: 400, border: "1px solid var(--red)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <h3 style={{ fontWeight: 700, color: "var(--red)" }}>⚠️ {title}</h3>
+          <h3 style={{ fontWeight: 700, color: "var(--red)" }}>⚠️ {config.title}</h3>
           <button className="btn-ghost" onClick={onClose} style={{ fontSize: "1.2rem" }}>×</button>
         </div>
 
@@ -49,7 +60,7 @@ function ResetModal({ type, onClose }: { type: ResetType; onClose: () => void })
         ) : (
           <>
             <p style={{ fontSize: "0.9rem", color: "var(--muted)", marginBottom: "1rem", lineHeight: 1.5 }}>
-              {description}
+              {config.description}
             </p>
             <p style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: "0.4rem" }}>
               Escribí <strong style={{ color: "var(--red)" }}>REINICIAR</strong> para confirmar:
@@ -72,7 +83,7 @@ function ResetModal({ type, onClose }: { type: ResetType; onClose: () => void })
                 opacity: confirmText === "REINICIAR" ? 1 : 0.5,
               }}
             >
-              {saving ? "Reiniciando…" : actionLabel}
+              {saving ? "Reiniciando…" : config.actionLabel}
             </button>
           </>
         )}
@@ -136,8 +147,9 @@ export default function AdminPanel() {
           {tabBtn("features", "✨ Funciones")}
         </div>
         <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+          {resetBtn("finished", "Borrar partidos terminados")}
           {resetBtn("points", "Reiniciar tabla")}
-          {resetBtn("predictions", "Reiniciar predicciones")}
+          {resetBtn("predictions", "Reiniciar todo")}
         </div>
       </div>
 

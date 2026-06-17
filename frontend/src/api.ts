@@ -102,6 +102,11 @@ export const api = {
     // sync
     sync: () => request("/admin/sync", { method: "POST" }),
     recalculate: () => request("/admin/recalculate", { method: "POST" }),
+    resetFinishedPredictions: () =>
+      request<{ ok: boolean; deleted: number; message: string }>("/admin/reset-finished-predictions", {
+        method: "POST",
+        body: JSON.stringify({ confirm: "REINICIAR" }),
+      }),
     resetPredictions: () =>
       request<{ ok: boolean; deleted: number; message: string }>("/admin/reset-predictions", {
         method: "POST",

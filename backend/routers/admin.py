@@ -213,6 +213,21 @@ class ResetConfirm(BaseModel):
     confirm: str
 
 
+@router.post("/reset-finished-predictions")
+def reset_finished_predictions(payload: ResetConfirm, admin=Depends(require_admin)):
+    """Borra predicciones de partidos ya terminados. Mantiene las de partidos futuros."""
+    if payload.confirm != "REINICIAR":
+        raise HTTPException(status_code=400, detail="Confirmación inválida")
+    with db() as conn:
+        deleted = conn.execute(
+            "SELECT COUNT(*) AS c FROM predictions p JOIN matches m ON m.id = p.match_id WHERE m.status = 'FINISHED'"
+        ).fetchone()["c"]
+        conn.execute(
+            "DELETE FROM predictions WHERE match_id IN (SELECT id FROM matches WHERE status = 'FINISHED')"
+        )
+    return {"ok": True, "deleted": deleted, "message": f"{deleted} predicciones de partidos terminados borradas"}
+
+
 @router.post("/reset-predictions")
 def reset_predictions(payload: ResetConfirm, admin=Depends(require_admin)):
     """Borra todas las predicciones. Usuarios y partidos quedan intactos."""
