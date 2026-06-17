@@ -14,7 +14,7 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 def list_users(admin=Depends(require_admin)):
     with db() as conn:
         rows = conn.execute(
-            "SELECT id, username, display_name, is_admin FROM users ORDER BY id"
+            "SELECT id, username, display_name, is_admin, password_set FROM users ORDER BY id"
         ).fetchall()
     return [dict(r) for r in rows]
 

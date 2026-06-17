@@ -120,6 +120,12 @@ export default function AdminUsers() {
                 <span style={{ fontWeight: 600 }}>{u.display_name}</span>
                 <span style={{ color: "var(--muted)", fontSize: "0.82rem", marginLeft: "0.5rem" }}>@{u.username}</span>
                 {!!u.is_admin && <span className="badge badge-gold" style={{ marginLeft: "0.5rem" }}>Admin</span>}
+                <span style={{
+                  marginLeft: "0.5rem", fontSize: "0.75rem", fontWeight: 600,
+                  color: u.password_set ? "var(--green)" : "var(--muted)",
+                }}>
+                  {u.password_set ? "Registrado" : "Pendiente"}
+                </span>
               </div>
               <button className="btn-ghost" onClick={() => openEdit(u)} style={{ fontSize: "0.82rem" }}>Editar</button>
               <button onClick={() => openReset(u)} style={{

@@ -57,7 +57,7 @@ export const api = {
 
   me: () => request<CurrentUser>("/auth/me"),
 
-  updateProfile: (data: { first_name: string; last_name: string; username: string }) =>
+  updateProfile: (data: { first_name: string; username: string }) =>
     request<CurrentUser>("/auth/me", { method: "PATCH", body: JSON.stringify(data) }),
 
   fixtures: () => request<Match[]>("/fixtures/"),
@@ -158,6 +158,7 @@ export interface AdminUser {
   username: string;
   display_name: string;
   is_admin: number;
+  password_set: number;
 }
 
 export interface AdminMatch {

@@ -27,11 +27,7 @@ export default function ProfileModal({ user, onClose, onUpdated }: Props) {
     e.preventDefault();
     setError(""); setSaved(false); setSaving(true);
     try {
-      const updated = await api.updateProfile({
-        first_name: firstName,
-        last_name: lastName,
-        username,
-      });
+      const updated = await api.updateProfile({ first_name: firstName, username });
       onUpdated(updated);
       localStorage.setItem("last_username", updated.username);
       setSaved(true);
@@ -63,7 +59,10 @@ export default function ProfileModal({ user, onClose, onUpdated }: Props) {
             </div>
             <div>
               <label style={labelStyle}>Apellido</label>
-              <input value={lastName} onChange={e => setLastName(e.target.value)} required />
+              <input value={lastName} readOnly style={{ opacity: 0.6, cursor: "not-allowed" }} />
+              <p style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.3rem" }}>
+                Para cambiar tu apellido contactá al organizador.
+              </p>
             </div>
             <div>
               <label style={labelStyle}>Usuario</label>

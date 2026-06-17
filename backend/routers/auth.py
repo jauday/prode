@@ -154,24 +154,21 @@ def me(current_user=Depends(get_current_user)):
 
 class ProfileUpdate(BaseModel):
     first_name: str
-    last_name: str
     username: str
 
 
 @router.patch("/me")
 def update_profile(body: ProfileUpdate, current_user=Depends(get_current_user)):
     first = body.first_name.strip()
-    last = body.last_name.strip()
     username = body.username.strip().lower()
 
-    if not first or not last:
-        raise HTTPException(status_code=400, detail="Nombre y apellido son obligatorios")
+    if not first:
+        raise HTTPException(status_code=400, detail="El nombre es obligatorio")
     if len(username) < 3:
         raise HTTPException(status_code=400, detail="El usuario debe tener al menos 3 caracteres")
     if " " in username:
         raise HTTPException(status_code=400, detail="El usuario no puede tener espacios")
 
-    display = f"{first} {last}"
     with db() as conn:
         clash = conn.execute(
             "SELECT id FROM users WHERE username = ? AND id <> ?", (username, current_user["id"])
@@ -179,9 +176,13 @@ def update_profile(body: ProfileUpdate, current_user=Depends(get_current_user)):
         if clash:
             raise HTTPException(status_code=409, detail="Ese usuario ya está en uso")
 
+        row = conn.execute("SELECT last_name FROM users WHERE id = ?", (current_user["id"],)).fetchone()
+        last = (row["last_name"] or "").strip()
+        display = f"{first} {last}".strip()
+
         conn.execute(
-            "UPDATE users SET first_name = ?, last_name = ?, username = ?, display_name = ? WHERE id = ?",
-            (first, last, username, display, current_user["id"]),
+            "UPDATE users SET first_name = ?, username = ?, display_name = ? WHERE id = ?",
+            (first, username, display, current_user["id"]),
         )
 
     log.info("profile updated: %s -> %s (%s)", current_user["username"], username, display)
