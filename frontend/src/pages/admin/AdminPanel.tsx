@@ -92,6 +92,46 @@ function ResetModal({ type, onClose }: { type: ResetType; onClose: () => void })
   );
 }
 
+function SharePodiumButton() {
+  const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const copy = async () => {
+    setLoading(true);
+    try {
+      const rows = await api.standings();
+      const medals = ["🥇", "🥈", "🥉"];
+      const today = new Date().toLocaleDateString("es-AR", { day: "numeric", month: "short" });
+      const top = rows.slice(0, 3).map((r, i) =>
+        `${medals[i]} ${r.display_name} — ${r.total_points} pts`
+      ).join("\n");
+      const rest = rows.slice(3).map((r, i) =>
+        `${i + 4}. ${r.display_name} — ${r.total_points} pts`
+      ).join("\n");
+      const msg = `🏆 *Tabla Prode Kalunga* — ${today}\n\n${top}${rest ? "\n\n" + rest : ""}`;
+      await navigator.clipboard.writeText(msg);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      alert("No se pudo copiar al portapapeles");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button onClick={copy} disabled={loading} style={{
+      padding: "0.45rem 0.9rem", borderRadius: 8, fontWeight: 600, fontSize: "0.82rem", cursor: "pointer",
+      background: copied ? "var(--green)" : "transparent",
+      border: "1px solid " + (copied ? "var(--green)" : "var(--border)"),
+      color: copied ? "#fff" : "var(--text)",
+      transition: "all 0.2s",
+    }}>
+      {copied ? "✓ Copiado" : loading ? "…" : "Copiar podio para WSP"}
+    </button>
+  );
+}
+
 export default function AdminPanel() {
   const [tab, setTab] = useState<AdminTab>("matches");
   const [resetType, setResetType] = useState<ResetType | null>(null);
@@ -146,7 +186,8 @@ export default function AdminPanel() {
           {tabBtn("users", "👥 Jugadores")}
           {tabBtn("features", "✨ Funciones")}
         </div>
-        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
+          <SharePodiumButton />
           {resetBtn("finished", "Borrar partidos terminados")}
           {resetBtn("points", "Reiniciar tabla")}
           {resetBtn("predictions", "Reiniciar todo")}
