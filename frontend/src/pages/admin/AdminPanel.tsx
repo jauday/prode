@@ -5,17 +5,28 @@ import AdminFeatures from "./AdminFeatures";
 import { api } from "../../api";
 
 type AdminTab = "matches" | "users" | "features";
+type ResetType = "predictions" | "points";
 
-function ResetModal({ onClose }: { onClose: () => void }) {
+function ResetModal({ type, onClose }: { type: ResetType; onClose: () => void }) {
   const [confirmText, setConfirmText] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState("");
 
+  const isPredictions = type === "predictions";
+
+  const title = isPredictions ? "Reiniciar predicciones" : "Reiniciar tabla";
+  const description = isPredictions
+    ? <>Borra <strong style={{ color: "var(--text)" }}>todas las predicciones</strong> de todos los jugadores. Los usuarios y partidos quedan intactos. <strong style={{ color: "var(--text)" }}>No se puede deshacer.</strong></>
+    : <>Pone a <strong style={{ color: "var(--text)" }}>0 los puntos</strong> de todas las predicciones sin borrarlas. Útil para corregir un error de cálculo. <strong style={{ color: "var(--text)" }}>No se puede deshacer.</strong></>;
+  const actionLabel = isPredictions ? "Borrar predicciones" : "Reiniciar puntos";
+
   const reset = async () => {
     setSaving(true); setError("");
     try {
-      const r = await api.admin.resetTournament();
+      const r = isPredictions
+        ? await api.admin.resetPredictions()
+        : await api.admin.resetPoints();
       setResult(r.message);
       setTimeout(onClose, 1800);
     } catch (e: any) {
@@ -29,7 +40,7 @@ function ResetModal({ onClose }: { onClose: () => void }) {
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: "1rem" }}>
       <div className="card" style={{ width: "100%", maxWidth: 400, border: "1px solid var(--red)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <h3 style={{ fontWeight: 700, color: "var(--red)" }}>⚠️ Reiniciar torneo</h3>
+          <h3 style={{ fontWeight: 700, color: "var(--red)" }}>⚠️ {title}</h3>
           <button className="btn-ghost" onClick={onClose} style={{ fontSize: "1.2rem" }}>×</button>
         </div>
 
@@ -38,8 +49,7 @@ function ResetModal({ onClose }: { onClose: () => void }) {
         ) : (
           <>
             <p style={{ fontSize: "0.9rem", color: "var(--muted)", marginBottom: "1rem", lineHeight: 1.5 }}>
-              Esto borra <strong style={{ color: "var(--text)" }}>todas las predicciones y puntos</strong> de todos los jugadores.
-              Los usuarios y partidos quedan intactos. <strong style={{ color: "var(--text)" }}>No se puede deshacer.</strong>
+              {description}
             </p>
             <p style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: "0.4rem" }}>
               Escribí <strong style={{ color: "var(--red)" }}>REINICIAR</strong> para confirmar:
@@ -62,7 +72,7 @@ function ResetModal({ onClose }: { onClose: () => void }) {
                 opacity: confirmText === "REINICIAR" ? 1 : 0.5,
               }}
             >
-              {saving ? "Reiniciando…" : "Borrar todo y reiniciar"}
+              {saving ? "Reiniciando…" : actionLabel}
             </button>
           </>
         )}
@@ -73,7 +83,7 @@ function ResetModal({ onClose }: { onClose: () => void }) {
 
 export default function AdminPanel() {
   const [tab, setTab] = useState<AdminTab>("matches");
-  const [showReset, setShowReset] = useState(false);
+  const [resetType, setResetType] = useState<ResetType | null>(null);
 
   const tabBtn = (t: AdminTab, label: string) => (
     <button onClick={() => setTab(t)} style={{
@@ -87,6 +97,15 @@ export default function AdminPanel() {
       color: tab === t ? "var(--text)" : "var(--muted)",
     }}>
       {label}
+    </button>
+  );
+
+  const resetBtn = (type: ResetType, label: string) => (
+    <button onClick={() => setResetType(type)} style={{
+      padding: "0.45rem 0.9rem", borderRadius: 8, fontWeight: 600, fontSize: "0.82rem", cursor: "pointer",
+      background: "transparent", border: "1px solid var(--red)", color: "var(--red)",
+    }}>
+      ⚠️ {label}
     </button>
   );
 
@@ -109,26 +128,24 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs + reset buttons */}
       <div style={{ display: "flex", gap: "0.4rem", marginBottom: "1.25rem", justifyContent: "space-between", flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
           {tabBtn("matches", "⚽ Partidos")}
           {tabBtn("users", "👥 Jugadores")}
           {tabBtn("features", "✨ Funciones")}
         </div>
-        <button onClick={() => setShowReset(true)} style={{
-          padding: "0.45rem 0.9rem", borderRadius: 8, fontWeight: 600, fontSize: "0.82rem", cursor: "pointer",
-          background: "transparent", border: "1px solid var(--red)", color: "var(--red)",
-        }}>
-          ⚠️ Reiniciar torneo
-        </button>
+        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+          {resetBtn("points", "Reiniciar tabla")}
+          {resetBtn("predictions", "Reiniciar predicciones")}
+        </div>
       </div>
 
       {tab === "matches" && <AdminMatches />}
       {tab === "users" && <AdminUsers />}
       {tab === "features" && <AdminFeatures />}
 
-      {showReset && <ResetModal onClose={() => setShowReset(false)} />}
+      {resetType && <ResetModal type={resetType} onClose={() => setResetType(null)} />}
     </div>
   );
 }

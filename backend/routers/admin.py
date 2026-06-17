@@ -209,16 +209,27 @@ def update_setting(key: str, payload: SettingUpdate, admin=Depends(require_admin
 
 # ── Reiniciar torneo ──────────────────────────────────────────────────────────
 
-class ResetTournament(BaseModel):
-    confirm: str  # debe ser "REINICIAR" para evitar accidentes
+class ResetConfirm(BaseModel):
+    confirm: str
 
 
-@router.post("/reset-tournament")
-def reset_tournament(payload: ResetTournament, admin=Depends(require_admin)):
-    """Borra TODAS las predicciones y puntos. Usuarios y partidos quedan intactos."""
+@router.post("/reset-predictions")
+def reset_predictions(payload: ResetConfirm, admin=Depends(require_admin)):
+    """Borra todas las predicciones. Usuarios y partidos quedan intactos."""
     if payload.confirm != "REINICIAR":
         raise HTTPException(status_code=400, detail="Confirmación inválida")
     with db() as conn:
         deleted = conn.execute("SELECT COUNT(*) AS c FROM predictions").fetchone()["c"]
         conn.execute("DELETE FROM predictions")
     return {"ok": True, "deleted": deleted, "message": f"{deleted} predicciones borradas"}
+
+
+@router.post("/reset-points")
+def reset_points(payload: ResetConfirm, admin=Depends(require_admin)):
+    """Pone a 0 los puntos de todas las predicciones sin borrarlas."""
+    if payload.confirm != "REINICIAR":
+        raise HTTPException(status_code=400, detail="Confirmación inválida")
+    with db() as conn:
+        updated = conn.execute("SELECT COUNT(*) AS c FROM predictions").fetchone()["c"]
+        conn.execute("UPDATE predictions SET points = 0")
+    return {"ok": True, "updated": updated, "message": f"Puntos de {updated} predicciones reiniciados"}
