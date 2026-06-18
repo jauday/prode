@@ -54,11 +54,12 @@ const ES: Record<string, string> = {
   "Sweden": "Suecia",
   "Norway": "Noruega",
   "Finland": "Finlandia",
-  "Bosnia-Herzegovina": "Bosnia y Herzegovina",
+  "Bosnia-Herzegovina": "Bosnia-Herz.",
 
   // Asia y Oceanía
   "Japan": "Japón",
   "South Korea": "Corea del Sur",
+  "North Korea": "Corea del Norte",
   "Australia": "Australia",
   "New Zealand": "Nueva Zelanda",
   "Saudi Arabia": "Arabia Saudita",

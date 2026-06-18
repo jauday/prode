@@ -73,10 +73,10 @@ function ScoreInput({ value, onChange }: { value: string; onChange: (v: string) 
       onChange={handleChange}
       maxLength={3}
       style={{
-        width: 48,
-        height: 48,
+        width: 44,
+        height: 44,
         textAlign: "center",
-        fontSize: "1.35rem",
+        fontSize: "1.25rem",
         fontWeight: 700,
         padding: 0,
         borderRadius: 10,
@@ -203,15 +203,15 @@ export default function MatchCard({ match, onSaved }: Props) {
       {/* Fila de equipos: nombre+bandera · marcador/inputs · bandera+nombre */}
       <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
         {/* Local: nombre + bandera (bandera hacia adentro) */}
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.65rem", minWidth: 0 }}>
-          <span style={{ fontWeight: 600, fontSize: "0.95rem", textAlign: "right", lineHeight: 1.2 }}>{homeName}</span>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.5rem", minWidth: 0 }}>
+          <span style={{ fontWeight: 600, fontSize: "0.85rem", textAlign: "right", lineHeight: 1.25, overflowWrap: "break-word", wordBreak: "break-word" }}>{homeName}</span>
           <Flag src={match.home_team_flag} alt={homeName} />
         </div>
 
         {/* Centro */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", flexShrink: 0 }}>
           {hasScore ? (
-            <span style={{ fontSize: "1.5rem", fontWeight: 800, letterSpacing: 1, whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: "1.4rem", fontWeight: 800, letterSpacing: 1, whiteSpace: "nowrap" }}>
               {match.home_score ?? "?"} - {match.away_score ?? "?"}
             </span>
           ) : locked ? (
@@ -225,9 +225,9 @@ export default function MatchCard({ match, onSaved }: Props) {
         </div>
 
         {/* Visitante: bandera + nombre (bandera hacia adentro) */}
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-start", gap: "0.65rem", minWidth: 0 }}>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-start", gap: "0.5rem", minWidth: 0 }}>
           <Flag src={match.away_team_flag} alt={awayName} />
-          <span style={{ fontWeight: 600, fontSize: "0.95rem", lineHeight: 1.2 }}>{awayName}</span>
+          <span style={{ fontWeight: 600, fontSize: "0.85rem", lineHeight: 1.25, overflowWrap: "break-word", wordBreak: "break-word" }}>{awayName}</span>
         </div>
       </div>
 
