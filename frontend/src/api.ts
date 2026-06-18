@@ -70,6 +70,7 @@ export const api = {
 
   standings: () => request<Standing[]>("/standings/"),
   groupStandings: () => request<GroupStanding[]>("/standings/groups"),
+  bracket: () => request<BracketStage[]>("/standings/bracket"),
 
   changePassword: (current_password: string, new_password: string) =>
     request("/auth/change-password", {
@@ -181,6 +182,24 @@ export interface GroupTableRow {
 export interface GroupStanding {
   group: string;
   table: GroupTableRow[];
+}
+
+export interface BracketMatch {
+  id: number;
+  stage: string;
+  home_team: string | null;
+  home_crest: string | null;
+  away_team: string | null;
+  away_crest: string | null;
+  home_score: number | null;
+  away_score: number | null;
+  status: string;
+  kick_off: string;
+}
+
+export interface BracketStage {
+  stage: string;
+  matches: BracketMatch[];
 }
 
 export interface AdminUser {

@@ -5,10 +5,11 @@ import Login from "./pages/Login";
 import Fixtures from "./pages/Fixtures";
 import Standings from "./pages/Standings";
 import Groups from "./pages/Groups";
+import Bracket from "./pages/Bracket";
 import AdminPanel from "./pages/admin/AdminPanel";
 import ProfileModal from "./components/ProfileModal";
 
-type Tab = "fixtures" | "standings" | "groups" | "admin";
+type Tab = "fixtures" | "standings" | "groups" | "bracket" | "admin";
 
 export default function App() {
   const { user, loading, login, setup, logout, updateUser } = useAuth();
@@ -66,6 +67,7 @@ export default function App() {
           { key: "fixtures", label: "⚽ Partidos" },
           { key: "standings", label: "🏅 Tabla" },
           { key: "groups", label: "🌍 Grupos" },
+          { key: "bracket", label: "🏆 Llave" },
           ...(user.is_admin ? [{ key: "admin", label: "🛠 Admin" }] : []),
         ] as { key: Tab; label: string }[]).map(({ key, label }) => (
           <button
@@ -97,6 +99,7 @@ export default function App() {
       {tab === "fixtures" && <Fixtures currentUserId={user.id} />}
       {tab === "standings" && <Standings />}
       {tab === "groups" && <Groups />}
+      {tab === "bracket" && <Bracket />}
       {tab === "admin" && user.is_admin && <AdminPanel />}
     </div>
   );

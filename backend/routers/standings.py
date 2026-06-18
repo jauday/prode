@@ -71,3 +71,49 @@ async def get_group_standings(current_user=Depends(get_current_user)):
             "table": table,
         })
     return groups
+
+
+STAGE_ORDER = ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "THIRD_PLACE", "FINAL"]
+
+@router.get("/bracket")
+async def get_bracket(current_user=Depends(get_current_user)):
+    if not API_KEY:
+        raise HTTPException(status_code=503, detail="API key no configurada")
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.get(
+            f"{BASE_URL}/competitions/{COMPETITION}/matches",
+            headers=HEADERS,
+        )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail="No se pudo obtener el bracket")
+
+    all_matches = resp.json().get("matches", [])
+    knockout = [m for m in all_matches if m.get("stage") in STAGE_ORDER]
+
+    def parse(m):
+        score = m.get("score", {})
+        ft = score.get("fullTime") or {}
+        home = m.get("homeTeam") or {}
+        away = m.get("awayTeam") or {}
+        return {
+            "id": m["id"],
+            "stage": m["stage"],
+            "home_team": home.get("name"),
+            "home_crest": home.get("crest"),
+            "away_team": away.get("name"),
+            "away_crest": away.get("crest"),
+            "home_score": ft.get("home"),
+            "away_score": ft.get("away"),
+            "status": m.get("status"),
+            "kick_off": m.get("utcDate"),
+        }
+
+    by_stage = {s: [] for s in STAGE_ORDER}
+    for m in knockout:
+        by_stage[m["stage"]].append(parse(m))
+
+    return [
+        {"stage": s, "matches": sorted(by_stage[s], key=lambda x: x["kick_off"] or "")}
+        for s in STAGE_ORDER
+        if by_stage[s]
+    ]
