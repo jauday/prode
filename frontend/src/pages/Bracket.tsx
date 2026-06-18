@@ -3,12 +3,12 @@ import { api, BracketStage, BracketMatch } from "../api";
 import { teamNameEs } from "../teamNames";
 
 const STAGE_LABEL: Record<string, string> = {
-  LAST_32:       "32avos",
-  LAST_16:       "16avos",
-  QUARTER_FINALS: "Cuartos",
-  SEMI_FINALS:   "Semis",
-  THIRD_PLACE:   "3er puesto",
-  FINAL:         "Final",
+  LAST_32:        "16avos",
+  LAST_16:        "8vos",
+  QUARTER_FINALS: "4tos",
+  SEMI_FINALS:    "Semis",
+  THIRD_PLACE:    "3er puesto",
+  FINAL:          "Final",
 };
 
 function TeamRow({ name, crest, score, winner }: {
