@@ -4,10 +4,11 @@ import { useTheme } from "./hooks/useTheme";
 import Login from "./pages/Login";
 import Fixtures from "./pages/Fixtures";
 import Standings from "./pages/Standings";
+import Groups from "./pages/Groups";
 import AdminPanel from "./pages/admin/AdminPanel";
 import ProfileModal from "./components/ProfileModal";
 
-type Tab = "fixtures" | "standings" | "admin";
+type Tab = "fixtures" | "standings" | "groups" | "admin";
 
 export default function App() {
   const { user, loading, login, setup, logout, updateUser } = useAuth();
@@ -64,6 +65,7 @@ export default function App() {
         {([
           { key: "fixtures", label: "⚽ Partidos" },
           { key: "standings", label: "🏅 Tabla" },
+          { key: "groups", label: "🌍 Grupos" },
           ...(user.is_admin ? [{ key: "admin", label: "🛠 Admin" }] : []),
         ] as { key: Tab; label: string }[]).map(({ key, label }) => (
           <button
@@ -94,6 +96,7 @@ export default function App() {
 
       {tab === "fixtures" && <Fixtures currentUserId={user.id} />}
       {tab === "standings" && <Standings />}
+      {tab === "groups" && <Groups />}
       {tab === "admin" && user.is_admin && <AdminPanel />}
     </div>
   );

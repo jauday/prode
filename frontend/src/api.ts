@@ -69,6 +69,7 @@ export const api = {
     }),
 
   standings: () => request<Standing[]>("/standings/"),
+  groupStandings: () => request<GroupStanding[]>("/standings/groups"),
 
   changePassword: (current_password: string, new_password: string) =>
     request("/auth/change-password", {
@@ -161,6 +162,25 @@ export interface Match {
   pred_home: number | null;
   pred_away: number | null;
   points: number | null;
+}
+
+export interface GroupTableRow {
+  position: number;
+  team_name: string;
+  team_crest: string | null;
+  played: number;
+  won: number;
+  draw: number;
+  lost: number;
+  gf: number;
+  ga: number;
+  gd: number;
+  points: number;
+}
+
+export interface GroupStanding {
+  group: string;
+  table: GroupTableRow[];
 }
 
 export interface AdminUser {

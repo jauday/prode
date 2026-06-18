@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from auth import get_current_user
 from database import db
+from football_api import API_KEY, BASE_URL, COMPETITION, HEADERS
+import httpx
 import logging
 
 
@@ -29,3 +31,43 @@ def get_standings(current_user=Depends(get_current_user)):
 
     log.info("standings load: %s", current_user["username"])
     return [dict(r) for r in rows]
+
+
+@router.get("/groups")
+async def get_group_standings(current_user=Depends(get_current_user)):
+    if not API_KEY:
+        raise HTTPException(status_code=503, detail="API key no configurada")
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.get(
+            f"{BASE_URL}/competitions/{COMPETITION}/standings",
+            headers=HEADERS,
+        )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail="No se pudo obtener la tabla de grupos")
+
+    raw = resp.json().get("standings", [])
+    groups = []
+    for g in raw:
+        if g.get("type") != "TOTAL":
+            continue
+        table = []
+        for row in g.get("table", []):
+            team = row.get("team", {})
+            table.append({
+                "position": row["position"],
+                "team_name": team.get("name", ""),
+                "team_crest": team.get("crest"),
+                "played": row["playedGames"],
+                "won": row["won"],
+                "draw": row["draw"],
+                "lost": row["lost"],
+                "gf": row["goalsFor"],
+                "ga": row["goalsAgainst"],
+                "gd": row["goalDifference"],
+                "points": row["points"],
+            })
+        groups.append({
+            "group": g.get("group", ""),
+            "table": table,
+        })
+    return groups
