@@ -67,7 +67,7 @@ export default function App() {
           { key: "fixtures", label: "⚽ Partidos" },
           { key: "standings", label: "🏅 Tabla" },
           { key: "groups", label: "🌍 Grupos" },
-          { key: "bracket", label: "🏆 Llave" },
+          { key: "bracket", label: "🏆 Llaves" },
           ...(user.is_admin ? [{ key: "admin", label: "🛠 Admin" }] : []),
         ] as { key: Tab; label: string }[]).map(({ key, label }) => (
           <button
