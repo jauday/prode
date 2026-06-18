@@ -71,6 +71,7 @@ export const api = {
   standings: () => request<Standing[]>("/standings/"),
   groupStandings: () => request<GroupStanding[]>("/standings/groups"),
   bracket: () => request<BracketStage[]>("/standings/bracket"),
+  bracketProjection: () => request<ProjectedMatch[]>("/standings/bracket-projection"),
 
   changePassword: (current_password: string, new_password: string) =>
     request("/auth/change-password", {
@@ -200,6 +201,20 @@ export interface BracketMatch {
 export interface BracketStage {
   stage: string;
   matches: BracketMatch[];
+}
+
+export interface ProjectedSlot {
+  label: string;
+  name: string | null;
+  crest: string | null;
+  points?: number;
+  played?: number;
+}
+
+export interface ProjectedMatch {
+  match: number;
+  home: ProjectedSlot;
+  away: ProjectedSlot;
 }
 
 export interface AdminUser {
