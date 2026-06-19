@@ -1,17 +1,19 @@
 """
 Background job: syncs fixtures and live scores from football-data.org.
-El fetch HTTP es async; las escrituras a Turso son sync y se corren en un
-thread separado para no bloquear el event loop (y así no trabar el health check).
+El fetch HTTP es async (no bloquea el event loop). La escritura a Turso es sync
+y corre en el MISMO thread del event loop: libsql_experimental ata el stream
+Hrana al runtime del thread donde se creó, así que usar la conexión desde un
+worker thread (asyncio.to_thread) la rompe con "stream not found". El resto de la
+app escribe desde el thread principal sin problemas, así que el sync hace lo mismo.
 """
 
-import asyncio
 from database import db
 from football_api import fetch_matches, parse_match
 from scoring import calculate_points
 
 
 def _write_matches_to_db(matches):
-    """Escribe los partidos en la DB de forma síncrona. Se llama via asyncio.to_thread.
+    """Escribe los partidos en la DB de forma síncrona (en el thread principal).
 
     Usa UNA sola conexión para todo el batch. Abrir una conexión por partido
     (decenas en ráfaga) hace que Turso invalide el stream Hrana del lado del
@@ -68,8 +70,18 @@ async def sync_matches():
         print(f"[sync] Error fetching matches: {e}")
         return
 
-    # Corre las escrituras sync a Turso en un thread para no bloquear el event loop.
-    await asyncio.to_thread(_write_matches_to_db, matches)
+    # Escritura en el thread principal (ver nota del módulo). Un reintento por si
+    # el stream Hrana expiró: _write_matches_to_db abre una conexión nueva cada vez.
+    for attempt in range(2):
+        try:
+            _write_matches_to_db(matches)
+            return
+        except ValueError as e:
+            if "stream not found" in str(e) and attempt == 0:
+                print("[sync] stream Hrana expirado, reintentando con conexión nueva...")
+                continue
+            print(f"[sync] Error escribiendo partidos: {e}")
+            return
 
 
 def recalculate_points():
