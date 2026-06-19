@@ -11,16 +11,26 @@ from scoring import calculate_points
 
 
 def _write_matches_to_db(matches):
-    """Escribe los partidos en la DB de forma síncrona. Se llama via asyncio.to_thread."""
+    """Escribe los partidos en la DB de forma síncrona. Se llama via asyncio.to_thread.
+
+    Usa UNA sola conexión para todo el batch. Abrir una conexión por partido
+    (decenas en ráfaga) hace que Turso invalide el stream Hrana del lado del
+    servidor y el commit explote con "stream not found".
+    """
     skipped = 0
+    written = 0
+    # Filtrar partidos de eliminación con equipos todavía sin definir.
+    # Se insertarán solos cuando la API tenga los clasificados.
+    parsed_matches = []
     for m in matches:
         parsed = parse_match(m)
-        # Saltear partidos de eliminación con equipos todavía sin definir.
-        # Se insertarán solos cuando la API tenga los clasificados.
         if not parsed["home_team"] or not parsed["away_team"]:
             skipped += 1
             continue
-        with db() as conn:
+        parsed_matches.append(parsed)
+
+    with db() as conn:
+        for parsed in parsed_matches:
             conn.execute("""
                 INSERT INTO matches
                     (external_id, stage, matchday, group_name, home_team, away_team,
@@ -45,9 +55,10 @@ def _write_matches_to_db(matches):
                 parsed["kick_off"], parsed["status"],
                 parsed["home_score"], parsed["away_score"],
             ))
+            written += 1
 
     recalculate_points()
-    print(f"[sync] Synced {len(matches) - skipped} matches ({skipped} sin equipos definidos, omitidos)")
+    print(f"[sync] Synced {written} matches ({skipped} sin equipos definidos, omitidos)")
 
 
 async def sync_matches():
