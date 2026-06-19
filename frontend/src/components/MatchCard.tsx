@@ -4,7 +4,7 @@ import { teamNameEs } from "../teamNames";
 
 interface Props {
   match: Match;
-  onSaved: () => void;
+  onSaved: (home: number, away: number) => void;
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -121,7 +121,7 @@ export default function MatchCard({ match, onSaved }: Props) {
     try {
       await api.predict(match.id, hi, ai);
       setSaved(true);
-      onSaved();
+      onSaved(hi, ai);
       setTimeout(() => setSaved(false), 2000);
     } catch (e: any) {
       setError(e.message);

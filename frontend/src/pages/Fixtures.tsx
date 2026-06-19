@@ -208,7 +208,15 @@ export default function Fixtures({ currentUserId }: { currentUserId: number }) {
 
       {filtered.length === 0
         ? <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>No hay partidos para esta selección.</p>
-        : filtered.map(m => <MatchCard key={m.id} match={m} onSaved={load} />)
+        : filtered.map(m => (
+            <MatchCard
+              key={m.id}
+              match={m}
+              onSaved={(home, away) => setMatches(prev =>
+                prev.map(x => x.id === m.id ? { ...x, pred_home: home, pred_away: away } : x)
+              )}
+            />
+          ))
       }
     </div>
   );
