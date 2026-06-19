@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { api, Match } from "../api";
 import MatchCard from "../components/MatchCard";
 import CountdownBanner from "../components/CountdownBanner";
@@ -117,12 +117,16 @@ export default function Fixtures({ currentUserId }: { currentUserId: number }) {
       .sort((a, b) => new Date(a.kick_off).getTime() - new Date(b.kick_off).getTime())[0] ?? null;
   }, [matches]);
 
-  // Default day index to today
+  // Posicionar en el día de hoy SOLO la primera vez que cargan los partidos.
+  // Si lo hiciéramos en cada cambio de dayKeys, guardar un pronóstico (o el
+  // refresh cada 60s) refetchea y te devolvería al día actual.
+  const didInitDay = useRef(false);
   useEffect(() => {
-    if (!dayKeys.length) return;
+    if (didInitDay.current || !dayKeys.length) return;
     const todayKey = toDateKey(new Date().toISOString());
     const idx = dayKeys.indexOf(todayKey);
     if (idx !== -1) setDayIndex(idx);
+    didInitDay.current = true;
   }, [dayKeys]);
 
   const filtered = useMemo(() => {
